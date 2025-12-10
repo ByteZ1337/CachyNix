@@ -1,0 +1,38 @@
+name: Bump CachyOS
+
+on:
+  schedule:
+    - cron: "0 4 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6.0.1
+      - uses: DeterminateSystems/determinate-nix-action@v3.14.0
+      - name: Python deps setup
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install requests zstandard
+      - name: Run update script
+        run: python ./scripts/update.py
+      - name: Check for changes
+        id: diff
+        run: |
+          if git diff --quiet versions.json flake.lock; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            git diff versions.json flake.lock
+          fi
+      - run: nix flake check
+      - name: Commit and push changes
+        if: steps.diff.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v8
+        with:
+          commit-message: "Bump inputs/versions.json"
+          title: "Automated kernel version bump"
+          branch: "auto/kernel-bump"
+          base: "main"
