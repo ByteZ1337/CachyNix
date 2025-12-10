@@ -1,6 +1,9 @@
 name: Bump CachyOS
 
 on:
+  push:
+    branches:
+      - '**'
   schedule:
     - cron: "0 4 * * *"
   workflow_dispatch: {}
