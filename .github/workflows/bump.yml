@@ -35,6 +35,7 @@ jobs:
         if: steps.diff.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v8
         with:
+          committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
           commit-message: "Bump inputs/versions.json"
           title: "Automated kernel version bump"
           branch: "auto/kernel-bump"
