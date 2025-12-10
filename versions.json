@@ -1,0 +1,10 @@
+{
+  "latest": {
+    "version": "6.18",
+    "tarballHash": "sha256-kQakYF2p4x/xdlnZWHgrgV+VkaswjQOw7iGq1sfc7Us="
+  },
+  "lts": {
+    "version": "6.12.61",
+    "tarballHash": "sha256-Gml0UQVShnbxLyncJJSUXZbLI2ZtzFIjeUq8IkFfFzU="
+  }
+}
