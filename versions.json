@@ -4,7 +4,7 @@
     "tarballHash": "sha256-kQakYF2p4x/xdlnZWHgrgV+VkaswjQOw7iGq1sfc7Us="
   },
   "lts": {
-    "version": "6.12.60",
-    "tarballHash": "sha256-pjCWshR0EdaDzsv4diK7L/SIW6wrNkHT1PECUMic3Pg="
+    "version": "6.12.1",
+    "tarballHash": "sha256-AAAAshR0EdaDzsv4diK7L/SIW6wrNkHT1PECUMic3Pg="
   }
 }
