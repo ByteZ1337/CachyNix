@@ -14,11 +14,13 @@
   march ? null,
   enableThinLTO ? true,
   isAmd ? (march == "znver4"),
+  versionSuffix ? "-cachyos",
   ...
 }:
 
 let
   major = lib.versions.majorMinor version;
+  modDirVersion = "${lib.versions.pad 3 version}${versionSuffix}";
 
   cachyosConfigFile = "${cachyosKernelSrc}/${variant}/config";
   cachyosPatches = "${cachyosPatchesSrc}/${major}/all/0001-cachyos-base-all.patch";
@@ -44,6 +46,7 @@ let
 
     postPatch = ''
       install -Dm644 ${cachyosConfigFile} arch/x86/configs/cachyos_defconfig
+      sed -i -E 's/^EXTRAVERSION.*/EXTRAVERSION = ${versionSuffix}/' Makefile
     '';
 
     dontConfigure = true;
@@ -58,7 +61,7 @@ let
 
 in
 buildLinux {
-  inherit version pname;
+  inherit version pname modDirVersion;
   src = patchedSrc;
 
   defconfig = "cachyos_defconfig";
