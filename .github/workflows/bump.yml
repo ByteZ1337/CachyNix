@@ -28,6 +28,7 @@ jobs:
             git diff versions.json flake.lock
           fi
       - run: nix flake check
+        if: steps.diff.outputs.changed == 'true'
       - name: Commit and push changes
         if: steps.diff.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v8
