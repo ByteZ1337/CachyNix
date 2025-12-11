@@ -1,11 +1,11 @@
-{ lib, final, versions, cachyosKernelSrc, cachyosPatchesSrc }:
+{ lib, pkgs, versions, cachyosKernelSrc, cachyosPatchesSrc }:
 let
   mkKernel = 
     { pname, stream, march, enableThinLTO, variant}:
-    final.callPackage ./package.nix {
+    pkgs.callPackage ./package.nix {
       version = versions.${stream}.version;
       tarballHash = versions.${stream}.tarballHash;
-      kernelPatchSet = final.kernelPatches;
+      kernelPatchSet = pkgs.kernelPatches;
       inherit pname march enableThinLTO variant cachyosKernelSrc cachyosPatchesSrc;
     };
 
@@ -44,7 +44,7 @@ let
 
   packages = lib.mapAttrs'(name: kernel: {
     name = "linuxPackages_cachyos_${lib.replaceStrings [ "linux-cachyos-" "-" ] [ "" "_" ] name}";
-    value = final.linuxPackagesFor kernel;
+    value = pkgs.linuxPackagesFor kernel;
   }) kernels;
 
 in kernels // packages
