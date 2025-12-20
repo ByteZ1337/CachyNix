@@ -52,7 +52,7 @@ def nix_prefetch_sri(version: str) -> str:
 def main():
     # flake updates
     print(f"updating cachyos flake inputs")
-    subprocess.run(["nix", "flake", "update", "cachyos-kernel", "cachyos-kernel-patches"], cwd=ROOT, check=True)
+    subprocess.run(["nix", "flake", "update"], cwd=ROOT, check=True)
 
     # versions.json updates
     versions = json.loads(VERSIONS_PATH.read_text())
