@@ -6,6 +6,7 @@ let
       version = versions.${stream}.version;
       tarballHash = versions.${stream}.tarballHash;
       kernelPatchSet = pkgs.kernelPatches;
+      llvmPackages = pkgs.llvmPackages_21;
       inherit pname march enableThinLTO variant cachyosKernelSrc cachyosPatchesSrc;
     };
 

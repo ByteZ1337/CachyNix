@@ -1,11 +1,11 @@
 {
   lib,
   buildLinux,
-  stdenv,
   kernelPatchSet,
   fetchurl,
   cachyosKernelSrc,
   cachyosPatchesSrc,
+  llvmPackages ? null,
 
   version,
   tarballHash,
@@ -19,75 +19,79 @@
 }:
 
 let
-  major = lib.versions.majorMinor version;
+  major = lib.versions.major version;
+  majorMinor = lib.versions.majorMinor version;
   modDirVersion = "${lib.versions.pad 3 version}${versionSuffix}";
 
   cachyosConfigFile = "${cachyosKernelSrc}/${variant}/config";
-  cachyosPatches = "${cachyosPatchesSrc}/${major}/all/0001-cachyos-base-all.patch";
+  cachyosPatches = "${cachyosPatchesSrc}/${majorMinor}/all/0001-cachyos-base-all.patch";
 
-  marchFlags = lib.optionals (march != null) [
-    "KCFLAGS=-march=${march}"
-  ];
-
-  patchedSrc = stdenv.mkDerivation {
-    pname = "linux-cachyos-src";
-    inherit version;
-
-    src = fetchurl {
-      url = "mirror://kernel/linux/kernel/v6.x/linux-${version}.tar.xz";
-      hash = tarballHash;
-    };
-
-    patches = [
-      kernelPatchSet.bridge_stp_helper.patch
-      kernelPatchSet.request_key_helper.patch
-      cachyosPatches
+  makeFlakgs =
+    lib.optionals (march != null) [
+      "KCFLAGS=-march=${march}"
+      "KCPPFLAGS=-march=${march}"
+    ]
+    ++ lib.optionals enableThinLTO [
+      "LLVM=1"
+      "LLVM_IAS=1"
     ];
-
-    postPatch = ''
-      install -Dm644 ${cachyosConfigFile} arch/x86/configs/cachyos_defconfig
-      sed -i -E 's/^EXTRAVERSION.*/EXTRAVERSION = ${versionSuffix}/' Makefile
-    '';
-
-    dontConfigure = true;
-    dontBuild = true;
-    dontFixup = true;
-
-    installPhase = ''
-      mkdir -p "$out"
-      cp -r . "$out/"
-    '';
-  };
 
 in
 buildLinux {
   inherit version pname modDirVersion;
-  src = patchedSrc;
 
-  defconfig = "cachyos_defconfig";
+  src = fetchurl {
+    url = "mirror://kernel/linux/kernel/v${major}.x/linux-${version}.tar.xz";
+    hash = tarballHash;
+  };
 
-  extraMakeFlags = marchFlags;
+  kernelPatches = [
+    kernelPatchSet.bridge_stp_helper
+    kernelPatchSet.request_key_helper
+    {
+      name = "cachyos-base-patch";
+      patch = cachyosPatches;
+    }
+  ];
+
+  defconfig = cachyosConfigFile;
+
+  extraNativeBuildInputs = lib.optionals enableThinLTO builtins.attrValues {
+    inherit (llvmPackages)
+      clang
+      lld
+      llvm
+      ;
+  };
+
+  extraMakeFlags = [
+    "KERNELRELEASE=${modDirVersion}"
+  ]
+  ++ makeFlakgs;
+
+  structuredExtraConfig =
+    with lib.kernel;
+    {
+      NR_CPUS = lib.mkForce (freeform "512");
+
+      LTO_NONE = lib.mkForce (if enableThinLTO then no else yes);
+      LTO_CLANG_THIN = lib.mkForce (if enableThinLTO then yes else no);
+
+      OVERLAY_FS = module;
+      OVERLAY_FS_REDIRECT_DIR = no;
+      OVERLAY_FS_REDIRECT_ALWAYS_FOLLOW = yes;
+      OVERLAY_FS_INDEX = no;
+      OVERLAY_FS_XINO_AUTO = no;
+      OVERLAY_FS_METACOPY = no;
+    }
+    // lib.optionalAttrs isAmd {
+      X86_AMD_PSTATE = yes;
+      AMD_PMC = module;
+    };
 
   ignoreConfigErrors = true;
 
-  structuredExtraConfig = with lib.kernel; {
-    NR_CPUS = lib.mkForce (freeform "512");
-
-    LTO_NONE = lib.mkForce (if enableThinLTO then no else yes);
-    LTO_CLANG_THIN = lib.mkForce (if enableThinLTO then yes else no);
-
-    OVERLAY_FS = module;
-    OVERLAY_FS_REDIRECT_DIR = no;
-    OVERLAY_FS_REDIRECT_ALWAYS_FOLLOW = yes;
-    OVERLAY_FS_INDEX = no;
-    OVERLAY_FS_XINO_AUTO = no;
-    OVERLAY_FS_METACOPY = no;
-  } // lib.optionalAttrs isAmd {
-    X86_AMD_PSTATE = yes;
-    AMD_PMC = module;
-  };
-
-extraMeta = {
+  extraMeta = {
     description =
       "Linux CachyOS kernel (${pname})"
       + lib.optionalString (march != null) " tuned for ${march}"
