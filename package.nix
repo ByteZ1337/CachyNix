@@ -26,7 +26,7 @@ let
   cachyosConfigFile = "${cachyosKernelSrc}/${variant}/config";
   cachyosPatches = "${cachyosPatchesSrc}/${majorMinor}/all/0001-cachyos-base-all.patch";
 
-  makeFlakgs =
+  makeFlags =
     lib.optionals (march != null) [
       "KCFLAGS=-march=${march}"
       "KCPPFLAGS=-march=${march}"
@@ -65,9 +65,9 @@ buildLinux {
   };
 
   extraMakeFlags = [
-    "KERNELRELEASE=${modDirVersion}"
+    "EXTRAVERSION=${versionSuffix}"
   ]
-  ++ makeFlakgs;
+  ++ makeFlags;
 
   structuredExtraConfig =
     with lib.kernel;
