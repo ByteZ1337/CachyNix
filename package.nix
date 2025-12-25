@@ -5,14 +5,12 @@
   fetchurl,
   cachyosKernelSrc,
   cachyosPatchesSrc,
-  llvmPackages ? null,
 
   version,
   tarballHash,
   variant,
   pname ? "linux-cachyos",
   march ? null,
-  enableThinLTO ? true,
   isAmd ? (march == "znver4"),
   versionSuffix ? "-cachyos",
   ...
@@ -30,10 +28,6 @@ let
     lib.optionals (march != null) [
       "KCFLAGS=-march=${march}"
       "KCPPFLAGS=-march=${march}"
-    ]
-    ++ lib.optionals enableThinLTO [
-      "LLVM=1"
-      "LLVM_IAS=1"
     ];
 
 in
@@ -53,16 +47,8 @@ buildLinux {
       patch = cachyosPatches;
     }
   ];
-
+  
   defconfig = cachyosConfigFile;
-
-  extraNativeBuildInputs = lib.optionals enableThinLTO builtins.attrValues {
-    inherit (llvmPackages)
-      clang
-      lld
-      llvm
-      ;
-  };
 
   extraMakeFlags = [
     "EXTRAVERSION=${versionSuffix}"
@@ -73,9 +59,6 @@ buildLinux {
     with lib.kernel;
     {
       NR_CPUS = lib.mkForce (freeform "512");
-
-      LTO_NONE = lib.mkForce (if enableThinLTO then no else yes);
-      LTO_CLANG_THIN = lib.mkForce (if enableThinLTO then yes else no);
 
       OVERLAY_FS = module;
       OVERLAY_FS_REDIRECT_DIR = no;
@@ -94,9 +77,8 @@ buildLinux {
   extraMeta = {
     description =
       "Linux CachyOS kernel (${pname})"
-      + lib.optionalString (march != null) " tuned for ${march}"
-      + lib.optionalString enableThinLTO " with thin lto";
+      + lib.optionalString (march != null) " tuned for ${march}";
     branch = lib.versions.majorMinor version;
-    inherit march enableThinLTO isAmd;
+    inherit march isAmd;
   };
 }
