@@ -1,0 +1,51 @@
+name: Build CachyOS
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Build target'
+        required: false
+        type: string
+
+jobs:
+  build:
+    if: github.event_name == 'workflow_dispatch' || (github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'auto/kernel-bump')
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: DeterminateSystems/determinate-nix-action@v3
+        with:
+          extra-conf: |
+            extra-substituters = https://cache.creepy.sh/cachyos
+            extra-trusted-public-keys = cachyos:cm+GC47yVJ6nd6tIQDx0qlCfWnxyJv3fL/rWr7FDSSg=
+
+      - name: Install attic-client
+        env:
+          ATTIC_USER: ${{ secrets.ATTIC_USER }}
+          ATTIC_ENDPOINT: ${{ secrets.ATTIC_ENDPOINT }}
+          ATTIC_TOKEN: ${{ secrets.ATTIC_TOKEN }}
+          ATTIC_CACHE: ${{ secrets.ATTIC_CACHE }}
+        run: |
+          nix profile add -v --log-format raw "github:ByteZ1337/attic/feat/upload-in-parts#attic-client"
+          attic login "$ATTIC_USER" "$ATTIC_ENDPOINT" "$ATTIC_TOKEN"
+          attic use "$ATTIC_CACHE"
+
+      - name: Build kernel
+        id: build
+        run: |
+          TARGET="${{ inputs.target || 'linux-cachyos-latest-x86-64-v3' }}"
+          OUT_PATHS=$(nix build --log-format raw -L ".#${TARGET}^*" --no-link --print-out-paths)
+          echo "out_paths<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$OUT_PATHS" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Push to Attic
+        env:
+          ATTIC_CACHE: ${{ secrets.ATTIC_CACHE }}
+        run: echo "${{ steps.build.outputs.out_paths }}" | xargs attic push "$ATTIC_CACHE"

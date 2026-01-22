@@ -10,13 +10,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6.0.1
-      - uses: DeterminateSystems/determinate-nix-action@v3.14.0
+      - uses: actions/checkout@v6
+
+      - uses: DeterminateSystems/determinate-nix-action@v3
+
       - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
+
       - name: Run update script
         run: uv run --with requests --with zstandard python ./scripts/update.py
+
       - name: Check for changes
         id: diff
         run: |
@@ -26,9 +30,11 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
             git --no-pager diff versions.json flake.lock
           fi
+
       - run: nix flake check
         if: steps.diff.outputs.changed == 'true'
       - name: Commit and push changes
+      
         if: steps.diff.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v8
         with:
