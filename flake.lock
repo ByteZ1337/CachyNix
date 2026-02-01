@@ -19,11 +19,11 @@
     "cachyos-kernel-patches": {
       "flake": false,
       "locked": {
-        "lastModified": 1769798075,
-        "narHash": "sha256-KvUqpAeRCYTyxM5s+bBmRjfWKtVo6BrewjIXBljx934=",
+        "lastModified": 1769882694,
+        "narHash": "sha256-78RxQya8j29Pu+EaUOsVeYViRG89ijautNlBqB8zBLM=",
         "owner": "CachyOS",
         "repo": "kernel-patches",
-        "rev": "c17bb53437f0b7aa2199c429eadfc204caa7cd8c",
+        "rev": "70ef8b481e4454f4823edc5aca11297eb8c45756",
         "type": "github"
       },
       "original": {
