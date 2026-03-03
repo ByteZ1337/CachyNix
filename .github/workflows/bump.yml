@@ -17,9 +17,10 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
+          cache-dependency-glob: "scripts/uv.lock"
 
       - name: Run update script
-        run: uv run --with requests --with zstandard python ./scripts/update.py
+        run: uv run --directory scripts python update.py
 
       - name: Check for changes
         id: diff
