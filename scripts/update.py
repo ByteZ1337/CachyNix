@@ -45,8 +45,7 @@ def trim_version(v: str) -> str:
     return v
 
 def nix_prefetch_sri(version: str) -> str:
-    major = version.split(".")[0]
-    url = f"https://cdn.kernel.org/pub/linux/kernel/v{major}.x/linux-{version}.tar.xz"
+    url = f"https://github.com/CachyOS/linux/releases/download/cachyos-{version}-1/cachyos-{version}-1.tar.gz"
     raw = subprocess.check_output(["nix-prefetch-url", url], text=True).strip()
     return subprocess.check_output(["nix", "hash", "convert", "--hash-algo", "sha256", raw], text=True).strip()
 

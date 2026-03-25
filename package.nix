@@ -4,7 +4,6 @@
   kernelPatchSet,
   fetchurl,
   cachyosKernelSrc,
-  cachyosPatchesSrc,
 
   version,
   tarballHash,
@@ -17,12 +16,9 @@
 }:
 
 let
-  major = lib.versions.major version;
-  majorMinor = lib.versions.majorMinor version;
   modDirVersion = "${lib.versions.pad 3 version}${versionSuffix}";
 
   cachyosConfigFile = "${cachyosKernelSrc}/${variant}/config";
-  cachyosPatches = "${cachyosPatchesSrc}/${majorMinor}/all/0001-cachyos-base-all.patch";
 
   makeFlags =
     lib.optionals (march != null) [
@@ -35,17 +31,13 @@ buildLinux {
   inherit version pname modDirVersion;
 
   src = fetchurl {
-    url = "mirror://kernel/linux/kernel/v${major}.x/linux-${version}.tar.xz";
+    url = "https://github.com/CachyOS/linux/releases/download/cachyos-${version}-1/cachyos-${version}-1.tar.gz";
     hash = tarballHash;
   };
 
   kernelPatches = [
     kernelPatchSet.bridge_stp_helper
     kernelPatchSet.request_key_helper
-    {
-      name = "cachyos-base-patch";
-      patch = cachyosPatches;
-    }
   ];
   
   defconfig = cachyosConfigFile;

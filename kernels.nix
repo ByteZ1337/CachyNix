@@ -1,4 +1,4 @@
-{ lib, pkgs, versions, cachyosKernelSrc, cachyosPatchesSrc }:
+{ lib, pkgs, versions, cachyosKernelSrc }:
 let
   mkKernel = 
     { pname, stream, march, variant}:
@@ -6,7 +6,7 @@ let
       version = versions.${stream}.version;
       tarballHash = versions.${stream}.tarballHash;
       kernelPatchSet = pkgs.kernelPatches;
-      inherit pname march variant cachyosKernelSrc cachyosPatchesSrc;
+      inherit pname march variant cachyosKernelSrc;
     };
 
   streams = [ "latest" "lts" ];

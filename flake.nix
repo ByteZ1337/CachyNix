@@ -8,15 +8,10 @@
       url = "github:CachyOS/linux-cachyos";
       flake = false;
     };
-
-    cachyos-kernel-patches = {
-      url = "github:CachyOS/kernel-patches";
-      flake = false;
-    };
   };
 
   outputs =
-    { nixpkgs, cachyos-kernel, cachyos-kernel-patches, ... }:
+    { nixpkgs, cachyos-kernel, ... }:
     let
       lib = nixpkgs.lib;
       pinnedPkgs = import nixpkgs {
@@ -30,7 +25,6 @@
           pkgs = pinnedPkgs;
           versions = builtins.fromJSON (builtins.readFile ./versions.json);
           cachyosKernelSrc = cachyos-kernel;
-          cachyosPatchesSrc = cachyos-kernel-patches;
         };
     in
     {
