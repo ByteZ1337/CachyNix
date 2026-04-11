@@ -1,10 +1,10 @@
 {
   "latest": {
-    "version": "6.19.10",
-    "tarballHash": "sha256-6JC1cfFr0OsY+MMV8mQE0w/uljkZpYFXmyJ3S9JylQg="
+    "version": "6.19.11",
+    "tarballHash": "sha256-rUPa39ybscLI3HlFMjywEpo4t2Z1NW0g+UhOe/Lawa4="
   },
   "lts": {
-    "version": "6.18.20",
-    "tarballHash": "sha256-IZlcniGTI60+Gy4Lx+JbNV9D3dlx4mv3iyEYK3HEk8c="
+    "version": "6.18.21",
+    "tarballHash": "sha256-QUz5M8wxQ7UZkSuaUfWjyUXf5aaLBHU836YEBjgmh4g="
   }
 }
