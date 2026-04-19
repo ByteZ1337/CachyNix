@@ -38,12 +38,6 @@ def get_cachyos_version(tar: tarfile.TarFile, pkg_name: str) -> str:
 def version_tuple(v: str) -> tuple[int, ...]:
     return tuple(int(x) for x in v.split("."))
 
-def trim_version(v: str) -> str:
-    parts = v.split(".")
-    if len(parts) == 3 and parts[2] == "0":
-        return ".".join(parts[:2])
-    return v
-
 def nix_prefetch_sri(version: str) -> str:
     url = f"https://github.com/CachyOS/linux/releases/download/cachyos-{version}-1/cachyos-{version}-1.tar.gz"
     raw = subprocess.check_output(["nix-prefetch-url", url], text=True).strip()
@@ -61,7 +55,7 @@ def main():
     tar = fetch_cachyos_db()
 
     for stream, pkg_name in STREAMS.items():
-        cachyos_ver = trim_version(get_cachyos_version(tar, pkg_name))
+        cachyos_ver = get_cachyos_version(tar, pkg_name)
         current_ver = versions.get(stream, {}).get("version")
 
         print(f"{stream}: cachyos={cachyos_ver} current={current_ver}")
