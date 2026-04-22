@@ -16,7 +16,8 @@
 }:
 
 let
-  modDirVersion = "${lib.versions.pad 3 version}${versionSuffix}";
+  kernelVersion = lib.elemAt (lib.splitString "-" version) 0;
+  modDirVersion = "${lib.versions.pad 3 kernelVersion}${versionSuffix}";
 
   cachyosConfigFile = "${cachyosKernelSrc}/${variant}/config";
 
