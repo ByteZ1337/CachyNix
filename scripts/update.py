@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import io
 import json
+import os
 import subprocess
 import tarfile
 from pathlib import Path
@@ -23,7 +24,7 @@ def fetch_cachyos_db() -> tarfile.TarFile:
     decompressed = zstd.ZstdDecompressor().stream_reader(io.BytesIO(resp.content)).read()
     return tarfile.open(fileobj=io.BytesIO(decompressed), mode="r:")
 
-def get_cachyos_version(tar: tarfile.TarFile, pkg_name: str) -> str:
+def get_cachyos_version(tar: tarfile.TarFile, pkg_name: str, gh_token: str) -> str:
     for member in tar.getmembers():
         if member.name.startswith(f"{pkg_name}-") and member.name.endswith("/desc"):
             desc = tar.extractfile(member).read().decode()
@@ -32,14 +33,35 @@ def get_cachyos_version(tar: tarfile.TarFile, pkg_name: str) -> str:
             full = lines[idx + 1].strip()
             if ":" in full:
                 full = full.split(":", 1)[1]
-            return full.rsplit("-", 1)[0]
+            # cachy's package repo and github releases sometimes have out of sync pkgrels, so fall back to github to see what the actual latest pkgrel we can get is
+            version = full.rsplit("-", 1)[0]
+            full = f"{version}-1"
+            if gh_token:
+                url = f"https://api.github.com/repos/cachyos/linux/releases?per_page=100"
+                headers = {"Authorization": f"Bearer {gh_token}"}
+                resp = requests.get(url, headers=headers, timeout=60)
+                resp.raise_for_status()
+                data = resp.json()
+                for entry in data:
+                    tag = entry["tag_name"]
+                    if tag.startswith(f"cachyos-{version}-"):
+                        full = tag[len("cachyos-"):]
+                        break
+            return full
     raise RuntimeError(f"{pkg_name} not found in db")
 
 def version_tuple(v: str) -> tuple[int, ...]:
-    return tuple(int(x) for x in v.split("."))
+    pkgrel = 1
+    if "-" in v:
+        v, pkgrel_str = v.rsplit("-", 1)
+        try:
+            pkgrel = int(pkgrel_str)
+        except ValueError: # TODO - rc handling
+            pass
+    return tuple(int(x) for x in v.split(".")) + (pkgrel,)
 
 def nix_prefetch_sri(version: str) -> str:
-    url = f"https://github.com/CachyOS/linux/releases/download/cachyos-{version}-1/cachyos-{version}-1.tar.gz"
+    url = f"https://github.com/CachyOS/linux/releases/download/cachyos-{version}/cachyos-{version}.tar.gz"
     raw = subprocess.check_output(["nix-prefetch-url", url], text=True).strip()
     return subprocess.check_output(["nix", "hash", "convert", "--hash-algo", "sha256", raw], text=True).strip()
 
@@ -55,7 +77,7 @@ def main():
     tar = fetch_cachyos_db()
 
     for stream, pkg_name in STREAMS.items():
-        cachyos_ver = get_cachyos_version(tar, pkg_name)
+        cachyos_ver = get_cachyos_version(tar, pkg_name, os.getenv("GITHUB_TOKEN"))
         current_ver = versions.get(stream, {}).get("version")
 
         print(f"{stream}: cachyos={cachyos_ver} current={current_ver}")

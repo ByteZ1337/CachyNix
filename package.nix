@@ -31,7 +31,7 @@ buildLinux {
   inherit version pname modDirVersion;
 
   src = fetchurl {
-    url = "https://github.com/CachyOS/linux/releases/download/cachyos-${version}-1/cachyos-${version}-1.tar.gz";
+    url = "https://github.com/CachyOS/linux/releases/download/cachyos-${version}/cachyos-${version}.tar.gz";
     hash = tarballHash;
   };
 

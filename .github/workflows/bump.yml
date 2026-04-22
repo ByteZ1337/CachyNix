@@ -20,6 +20,8 @@ jobs:
           cache-dependency-glob: "scripts/uv.lock"
 
       - name: Run update script
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: uv run --directory scripts python update.py
 
       - name: Check for changes
