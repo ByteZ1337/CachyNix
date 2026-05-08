@@ -9,7 +9,7 @@ from pathlib import Path
 import requests
 import zstandard as zstd
 
-CACHYOS_DB_URL = "https://mirror.cachyos.org/repo/x86_64_v3/cachyos-v3/cachyos-v3.db"
+CACHYOS_DB_URL = "https://mirror.cachyos.org/repo/x86_64_v4/cachyos-znver4/cachyos-znver4.db"
 ROOT = Path(__file__).resolve().parent.parent
 VERSIONS_PATH = ROOT / "versions.json"
 
