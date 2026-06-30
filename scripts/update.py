@@ -26,7 +26,7 @@ def fetch_cachyos_db() -> tarfile.TarFile:
 
 def get_cachyos_version(tar: tarfile.TarFile, pkg_name: str, gh_token: str) -> str:
     for member in tar.getmembers():
-        if member.name.startswith(f"{pkg_name}-") and member.name.endswith("/desc"):
+        if member.name.startswith(f"{pkg_name}-") and member.name.endswith("/desc") and member.name[len(pkg_name) + 1].isdigit():
             desc = tar.extractfile(member).read().decode()
             lines = desc.splitlines()
             idx = lines.index("%VERSION%")
