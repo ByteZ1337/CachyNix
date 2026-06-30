@@ -66,22 +66,11 @@ let
     "NIX_CC_WRAPPER_SUPPRESS_TARGET_WARNING=1"
   ];
 
-  mkLLVMPlatform =
-    platform:
-    platform
-    // {
-      linux-kernel = platform.linux-kernel // {
-        makeFlags = (platform.linux-kernel.makeFlags or [ ]) ++ ltoMakeFlags;
-      };
-    };
-
   llvmStdenv =
     let
       base = overrideCC hostLLVM.stdenv hostLLVM.clangUseLLVM;
     in
     base.override (_old: {
-      hostPlatform = mkLLVMPlatform base.hostPlatform;
-      buildPlatform = mkLLVMPlatform base.buildPlatform;
       extraNativeBuildInputs = [
         hostLLVM.lld
         patchelf
