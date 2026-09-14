@@ -1,7 +1,7 @@
 {
   "latest": {
-    "version": "7.2.4-1",
-    "tarballHash": "sha256-QAmRFewGqyp4DmHphEtIVxLUl7QIKx5KIW++w2LFNg8="
+    "version": "7.2.5-1",
+    "tarballHash": "sha256-/5QLOjoEo/0VUggUsIskD93N3OaW+AWuAKBYS+Crocc="
   },
   "lts": {
     "version": "6.18.50-1",
