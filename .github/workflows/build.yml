@@ -11,17 +11,25 @@ on:
         required: false
         type: string
 
+defaults:
+  run:
+    shell: nu {0}
+
 jobs:
   build:
     if: github.event_name == 'workflow_dispatch' || (github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'auto/kernel-bump')
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
-      - uses: wimpysworld/nothing-but-nix@v7
+      - uses: wimpysworld/nothing-but-nix@a77b09ee91691223ff188d8fb6a87d699d457b4f # v7
 
-      - uses: DeterminateSystems/determinate-nix-action@v3
+      - uses: hustcer/setup-nu@95cd3bfe252450ef7d35dd9a7ddecf3484341134 # v3.28
+        with:
+          version: "0.116"
+
+      - uses: DeterminateSystems/determinate-nix-action@e847f25223456b3058e12f7fc9d777b6a6f25060 # v3.23.2
         with:
           extra-conf: |
             extra-substituters = https://cache.creepy.sh/cachyos
@@ -35,19 +43,19 @@ jobs:
           ATTIC_CACHE: ${{ secrets.ATTIC_CACHE }}
         run: |
           nix profile add -v --log-format raw "github:ByteZ1337/attic/feat/upload-in-parts#attic-client"
-          attic login "$ATTIC_USER" "$ATTIC_ENDPOINT" "$ATTIC_TOKEN"
-          attic use "$ATTIC_CACHE"
+          attic login $env.ATTIC_USER $env.ATTIC_ENDPOINT $env.ATTIC_TOKEN
+          attic use $env.ATTIC_CACHE
 
       - name: Build kernel
         id: build
+        env:
+          TARGET: ${{ inputs.target || 'linux-cachyos-latest-znver4-lto' }}
         run: |
-          TARGET="${{ inputs.target || 'linux-cachyos-latest-x86-64-v3' }}"
-          OUT_PATHS=$(nix build --log-format raw -L ".#${TARGET}^*" --no-link --print-out-paths)
-          echo "out_paths<<EOF" >> "$GITHUB_OUTPUT"
-          echo "$OUT_PATHS" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
+          let out_paths = nix build --log-format raw -L $".#($env.TARGET)^*" --no-link --print-out-paths | str trim
+          $"out_paths<<EOF\n($out_paths)\nEOF\n" | save --append $env.GITHUB_OUTPUT
 
       - name: Push to Attic
         env:
           ATTIC_CACHE: ${{ secrets.ATTIC_CACHE }}
-        run: echo "${{ steps.build.outputs.out_paths }}" | xargs attic push "$ATTIC_CACHE"
+          OUT_PATHS: ${{ steps.build.outputs.out_paths }}
+        run: attic push $env.ATTIC_CACHE ...($env.OUT_PATHS | lines)

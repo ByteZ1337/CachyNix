@@ -5,46 +5,49 @@ on:
     - cron: "0 4 * * *"
   workflow_dispatch: {}
 
+defaults:
+  run:
+    shell: nu {0}
+
 jobs:
   update:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
-      - uses: DeterminateSystems/determinate-nix-action@v3
-
-      - uses: astral-sh/setup-uv@v7
+      - uses: hustcer/setup-nu@95cd3bfe252450ef7d35dd9a7ddecf3484341134 # v3.28
         with:
-          enable-cache: true
-          cache-dependency-glob: "scripts/uv.lock"
+          version: "0.116"
 
       - name: Run update script
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: uv run --directory scripts python update.py
+        run: nu update.nu
 
       - name: Check for changes
         id: diff
         run: |
-          if git diff --quiet versions.json flake.lock; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-            git --no-pager diff versions.json flake.lock
-          fi
+          let changed = (git diff --quiet versions.json | complete).exit_code != 0
+          $"changed=($changed)\n" | save --append $env.GITHUB_OUTPUT
+          if $changed { git --no-pager diff versions.json }
+
+      - uses: DeterminateSystems/determinate-nix-action@e847f25223456b3058e12f7fc9d777b6a6f25060 # v3.23.2
+        if: steps.diff.outputs.changed == 'true'
+
+      - name: Update flake inputs
+        if: steps.diff.outputs.changed == 'true'
+        run: nix flake update
 
       - run: nix flake check
         if: steps.diff.outputs.changed == 'true'
-      - name: Commit and push changes
-      
+
+      - name: Create pull request
         if: steps.diff.outputs.changed == 'true'
-        uses: peter-evans/create-pull-request@v8
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
           author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
           commit-message: "chore: bump inputs/versions.json"
           title: "Automated kernel version bump"
           body: ""
-          branch: "auto/kernel-bump"
-          base: "main"
