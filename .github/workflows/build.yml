@@ -13,7 +13,7 @@ on:
 
 defaults:
   run:
-    shell: nu {0}
+    shell: nix shell --inputs-from . nixpkgs#nushell --command nu {0}
 
 jobs:
   build:
@@ -24,10 +24,6 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - uses: wimpysworld/nothing-but-nix@687c797a730352432950c707ab493fcc951818d7 # v10
-
-      - uses: hustcer/setup-nu@95cd3bfe252450ef7d35dd9a7ddecf3484341134 # v3.28
-        with:
-          version: "0.116"
 
       - uses: DeterminateSystems/determinate-nix-action@e847f25223456b3058e12f7fc9d777b6a6f25060 # v3.23.2
         with:
