@@ -6,7 +6,6 @@
   cachyosKernelSrc,
 
   pkgsBuildHost,
-  pkgsBuildBuild,
   overrideCC,
   patchelf,
 
@@ -44,24 +43,17 @@ let
     bootBintools = null;
     bootBintoolsNoLibc = null;
   };
-  hostLLVM = pkgsBuildHost.llvmPackages.override noBintools;
-  buildLLVM = pkgsBuildBuild.llvmPackages.override noBintools;
+  # LLVM 21 ThinLTO emits .discard.annotate_insn relocs that objtool cannot map to instructions after a partial link
+  hostLLVM = pkgsBuildHost.llvmPackages_20.override noBintools;
 
   ltoMakeFlags = [
+    # nixpkgs common-flags.nix derives a complete unwrapped LLVM target
     "LLVM=1"
     "LLVM_IAS=1"
-    "CC=${buildLLVM.clangUseLLVM}/bin/clang"
-    "LD=${buildLLVM.lld}/bin/ld.lld"
-    "HOSTLD=${hostLLVM.lld}/bin/ld.lld"
-    "AR=${buildLLVM.llvm}/bin/llvm-ar"
-    "HOSTAR=${hostLLVM.llvm}/bin/llvm-ar"
-    "NM=${buildLLVM.llvm}/bin/llvm-nm"
-    "STRIP=${buildLLVM.llvm}/bin/llvm-strip"
-    "OBJCOPY=${buildLLVM.llvm}/bin/llvm-objcopy"
-    "OBJDUMP=${buildLLVM.llvm}/bin/llvm-objdump"
-    "READELF=${buildLLVM.llvm}/bin/llvm-readelf"
+
     "HOSTCC=${hostLLVM.clangUseLLVM}/bin/clang"
     "HOSTCXX=${hostLLVM.clangUseLLVM}/bin/clang++"
+
     # Mute nixpkgs CC wrapper warnings for Clang+LTO
     "NIX_CC_WRAPPER_SUPPRESS_TARGET_WARNING=1"
   ];
