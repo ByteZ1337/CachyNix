@@ -3,11 +3,11 @@
     "cachyos-kernel": {
       "flake": false,
       "locked": {
-        "lastModified": 1792618867,
-        "narHash": "sha256-xKIfg6hkKHhJd3U7ITMG+mf0F13MhxiDfDfXbSgrXV0=",
+        "lastModified": 1792771500,
+        "narHash": "sha256-J3p2cBsL/eJNDh4kaEuazsQOCs/TbaZUFUUffXmo6BE=",
         "owner": "CachyOS",
         "repo": "linux-cachyos",
-        "rev": "f8d566ed16e186f57f46df7bf1bf22a285d3be6c",
+        "rev": "523baf9cc1e37b7f8079064447f1418702c45154",
         "type": "github"
       },
       "original": {
