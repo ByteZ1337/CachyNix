@@ -1,0 +1,47 @@
+name: Build and push to attic
+description: Install attic, build a flake target and push its outputs to the binary cache
+
+# expects nix to already be installed
+inputs:
+  target:
+    description: Flake output to build
+    required: true
+  attic-user:
+    required: true
+  attic-endpoint:
+    required: true
+  attic-token:
+    required: true
+  attic-cache:
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Install attic-client
+      shell: nix shell --inputs-from . nixpkgs#nushell --command nu {0}
+      env:
+        ATTIC_USER: ${{ inputs.attic-user }}
+        ATTIC_ENDPOINT: ${{ inputs.attic-endpoint }}
+        ATTIC_TOKEN: ${{ inputs.attic-token }}
+        ATTIC_CACHE: ${{ inputs.attic-cache }}
+      run: |
+        nix profile add -v --log-format raw "github:ByteZ1337/attic/feat/upload-in-parts#attic-client"
+        attic login $env.ATTIC_USER $env.ATTIC_ENDPOINT $env.ATTIC_TOKEN
+        attic use $env.ATTIC_CACHE
+
+    - name: Build
+      id: build
+      shell: nix shell --inputs-from . nixpkgs#nushell --command nu {0}
+      env:
+        TARGET: ${{ inputs.target }}
+      run: |
+        let out_paths = nix build --log-format raw -L $".#($env.TARGET)^*" --no-link --print-out-paths | str trim
+        $"out_paths<<EOF\n($out_paths)\nEOF\n" | save --append $env.GITHUB_OUTPUT
+
+    - name: Push to Attic
+      shell: nix shell --inputs-from . nixpkgs#nushell --command nu {0}
+      env:
+        ATTIC_CACHE: ${{ inputs.attic-cache }}
+        OUT_PATHS: ${{ steps.build.outputs.out_paths }}
+      run: attic push $env.ATTIC_CACHE ...($env.OUT_PATHS | lines)

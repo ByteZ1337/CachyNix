@@ -1,9 +1,7 @@
 name: Build CachyOS
 
+# Manual builds. Automated bump builds in bump.yml
 on:
-  pull_request:
-    types: [closed]
-    branches: [main]
   workflow_dispatch:
     inputs:
       target:
@@ -11,13 +9,11 @@ on:
         required: false
         type: string
 
-defaults:
-  run:
-    shell: nix shell --inputs-from . nixpkgs#nushell --command nu {0}
+permissions:
+  contents: read
 
 jobs:
   build:
-    if: github.event_name == 'workflow_dispatch' || (github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'auto/kernel-bump')
     runs-on: ubuntu-latest
 
     steps:
@@ -31,27 +27,10 @@ jobs:
             extra-substituters = https://cache.creepy.sh/cachyos
             extra-trusted-public-keys = cachyos:cm+GC47yVJ6nd6tIQDx0qlCfWnxyJv3fL/rWr7FDSSg=
 
-      - name: Install attic-client
-        env:
-          ATTIC_USER: ${{ secrets.ATTIC_USER }}
-          ATTIC_ENDPOINT: ${{ secrets.ATTIC_ENDPOINT }}
-          ATTIC_TOKEN: ${{ secrets.ATTIC_TOKEN }}
-          ATTIC_CACHE: ${{ secrets.ATTIC_CACHE }}
-        run: |
-          nix profile add -v --log-format raw "github:ByteZ1337/attic/feat/upload-in-parts#attic-client"
-          attic login $env.ATTIC_USER $env.ATTIC_ENDPOINT $env.ATTIC_TOKEN
-          attic use $env.ATTIC_CACHE
-
-      - name: Build kernel
-        id: build
-        env:
-          TARGET: ${{ inputs.target || 'linux-cachyos-latest-znver4-lto' }}
-        run: |
-          let out_paths = nix build --log-format raw -L $".#($env.TARGET)^*" --no-link --print-out-paths | str trim
-          $"out_paths<<EOF\n($out_paths)\nEOF\n" | save --append $env.GITHUB_OUTPUT
-
-      - name: Push to Attic
-        env:
-          ATTIC_CACHE: ${{ secrets.ATTIC_CACHE }}
-          OUT_PATHS: ${{ steps.build.outputs.out_paths }}
-        run: attic push $env.ATTIC_CACHE ...($env.OUT_PATHS | lines)
+      - uses: ./.github/actions/build-push
+        with:
+          target: ${{ inputs.target || 'linux-cachyos-latest-znver4-lto' }}
+          attic-user: ${{ secrets.ATTIC_USER }}
+          attic-endpoint: ${{ secrets.ATTIC_ENDPOINT }}
+          attic-token: ${{ secrets.ATTIC_TOKEN }}
+          attic-cache: ${{ secrets.ATTIC_CACHE }}
