@@ -14,9 +14,26 @@
     { nixpkgs, cachyos-kernel, ... }:
     let
       lib = nixpkgs.lib;
+
+      # Temp until pahole 1.33: CachyOS allows Rust with LTO + BTF which needs unreleased pahole
+      paholeOverlay = final: prev: {
+        pahole =
+          if prev.pahole.version == "1.32" then
+            prev.pahole.overrideAttrs {
+              version = "1.32-unstable-2026-11-14";
+              src = final.fetchzip {
+                url = "https://git.kernel.org/pub/scm/devel/pahole/pahole.git/snapshot/pahole-72b61b0ce99995733d36f704acb53a64044ee85e.tar.gz";
+                hash = "sha256-kmOF2tg7EfC1nZYxgBU4XROYXaB2KQwNJVBz6nGL4Yk=";
+              };
+            }
+          else
+            lib.warn "nixpkgs has pahole ${prev.pahole.version}, remove paholeOverlay from flake.nix" prev.pahole;
+      };
+
       pinnedPkgs = import nixpkgs {
         system = "x86_64-linux";
         config.allowUnfree = true;
+        overlays = [ paholeOverlay ];
       };
       linuxPackagesFor =
         kernel:
