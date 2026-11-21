@@ -3,11 +3,11 @@
     "cachyos-kernel": {
       "flake": false,
       "locked": {
-        "lastModified": 1794657304,
-        "narHash": "sha256-jdIVsRgcOyYs29jJzsQ/klDSY4BW5b4qodl6I6wf9l8=",
+        "lastModified": 1794922723,
+        "narHash": "sha256-5Mi+N0Q/AI7enkRdoBOd3juvhqaCl/rSq/YMwHZA8vg=",
         "owner": "CachyOS",
         "repo": "linux-cachyos",
-        "rev": "13814d5415535c5866784445b670b759ab418b61",
+        "rev": "271d7782ac4854255aec73370aa0e142afb5d3ba",
         "type": "github"
       },
       "original": {
@@ -18,11 +18,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1794537146,
-        "narHash": "sha256-bTKSclXJAmo9qdxPedTBHUGr8awPr4BrbOoOutJsYIc=",
-        "rev": "d5cc6833999746cffdfe0598f7bc801a57b887a9",
+        "lastModified": 1795085501,
+        "narHash": "sha256-kqy60mdSH4GQAv3kzSeefteaiCv9arf3P+auosZrpo0=",
+        "rev": "0bb8272318b4ca41bf0edc6224df3e3e3046b70d",
         "type": "tarball",
-        "url": "https://releases.nixos.org/nixos/unstable/nixos-26.11pre1119549.d5cc68339997/nixexprs.tar.zst?lastModified=1794537146&rev=d5cc6833999746cffdfe0598f7bc801a57b887a9"
+        "url": "https://releases.nixos.org/nixos/unstable/nixos-26.11pre1124497.0bb8272318b4/nixexprs.tar.zst"
       },
       "original": {
         "type": "tarball",
